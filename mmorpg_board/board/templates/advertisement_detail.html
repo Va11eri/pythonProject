@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>{{ advertisement.title }}</h2>
+  <p>Категория: {{ advertisement.category }}</p>
+  <p>Содержание: {{ advertisement.content }}</p>
+  <p>Автор: {{ advertisement.user }}</p>
+  <p>Дата создания: {{ advertisement.created_at }}</p>
+
+  <!-- Место для отображения медиа-контента объявления, если он есть -->
+  {% for media_content in advertisement.mediacontent_set.all %}
+    <img src="{{ media_content.file.url }}" alt="Media Content">
+  {% endfor %}
+
+  <!-- Форма для отправки отклика на объявление -->
+  <h3>Отправить отклик:</h3>
+  <form method="post" action="{% url 'send_response' advertisement_id=advertisement.pk %}">
+    {% csrf_token %}
+    <textarea name="content" rows="4" cols="50" required></textarea><br>
+    <button type="submit">Откликнуться</button>
+  </form>
+
+  <!-- Кнопка для редактирования объявления, если текущий пользователь его автор -->
+  {% if request.user == advertisement.user %}
+    <a href="{% url 'edit_advertisement' advertisement_id=advertisement.pk %}">Редактировать</a>
+  {% endif %}
+{% endblock %}
+

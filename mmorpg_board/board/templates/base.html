@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My MMORPG Board</title>
+</head>
+<body>
+<header>
+    <h1 style="text-align: center;"><em>My MMORPG Board</em></h1>
+    <nav>
+        {% if user.is_authenticated %}
+            <a href="{% url 'private_page' %}">Приватная страница</a>
+            <a href="{% url 'logout' %}">Выход</a>
+        {% else %}
+            <a href="{% url 'login' %}">Вход</a>
+            <a href="{% url 'register_user' %}">Регистрация</a>
+        {% endif %}
+    </nav>
+</header>
+<main>
+    {% block content %}{% endblock %}
+</main>
+<footer>
+    <p>&copy; {{ year }} My MMORPG Board</p>
+</footer>
+</body>
+</html>

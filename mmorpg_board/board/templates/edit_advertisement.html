@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Edit Advertisement</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="title">Title:</label>
+    <input type="text" name="title" id="title" value="{{ advertisement.title }}" required><br>
+    <label for="content">Content:</label>
+    <textarea name="content" id="content" required>{{ advertisement.content }}</textarea><br>
+    <label for="category">Category:</label>
+    <select name="category" id="category" required>
+      {% for category in categories %}
+        <option value="{{ category.id }}" {% if category.id == advertisement.category.id %}selected{% endif %}>{{ category.name }}</option>
+      {% endfor %}
+    </select><br>
+    <input type="submit" value="Save">
+  </form>
+{% endblock %}

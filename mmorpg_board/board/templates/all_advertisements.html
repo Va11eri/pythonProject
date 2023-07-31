@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Моя доска объявлений</title>
+</head>
+<body>
+    <!-- Здесь ваше меню навигации и другие общие элементы интерфейса -->
+    <nav>
+        <ul>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Выйти</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Войти</a></li>
+                <li><a href="{% url 'register_user' %}">Зарегистрироваться</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    {% block content %}
+    <h1>Лента всех объявлений</h1>
+    <ul>
+        {% for advertisement in advertisements %}
+        <li>
+            <h2>{{ advertisement.title }}</h2>
+            <p>{{ advertisement.content }}</p>
+            <p>Автор: {{ advertisement.user }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Моя приватная страница</h1>
+
+    <h2>Мои объявления</h2>
+    <ul>
+        {% for advertisement in advertisements %}
+            <li>
+                <a href="{% url 'advertisement_detail' advertisement_id=advertisement.pk %}">{{ advertisement.title }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Мои отклики</h2>
+    <ul>
+        {% for response in responses %}
+            <li>
+                {{ response.content }}
+                {% if response.advertisement.user == user %}
+                    <a href="{% url 'delete_response' response_id=response.pk %}">Удалить</a>
+                {% endif %}
+                {% if not response.is_accepted and response.advertisement.user == user %}
+                    <a href="{% url 'accept_response' response_id=response.pk %}">Принять</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
