@@ -3,14 +3,23 @@
 {% block content %}
   <h2>{{ advertisement.title }}</h2>
   <p>Категория: {{ advertisement.category }}</p>
-  <p>Содержание: {{ advertisement.content }}</p>
+  <p>Содержание: {{ advertisement.content | safe }}</p>
   <p>Автор: {{ advertisement.user }}</p>
   <p>Дата создания: {{ advertisement.created_at }}</p>
 
-  <!-- Место для отображения медиа-контента объявления, если он есть -->
-  {% for media_content in advertisement.mediacontent_set.all %}
-    <img src="{{ media_content.file.url }}" alt="Media Content">
-  {% endfor %}
+  <!-- Отображение медиа-контента, если он есть -->
+  {% if advertisement.file %}
+    {% if advertisement.file.url|slice:"-4:" == ".png" or advertisement.file.url|slice:"-4:" == ".jpg" or advertisement.file.url|slice:"-5:" == ".jpeg" or advertisement.file.url|slice:"-4:" == ".gif" %}
+      <img src="{{ advertisement.file.url }}" alt="Media Content">
+    {% elif advertisement.file.url|slice:"-4:" == ".mp4" or advertisement.file.url|slice:"-5:" == ".webm" %}
+      <video controls>
+        <source src="{{ advertisement.file.url }}" type="Медиа-контент">
+        Ваш браузер не поддерживает видео.
+      </video>
+    {% else %}
+      <a href="{{ advertisement.file.url }}">Скачать медиа-контент</a>
+    {% endif %}
+  {% endif %}
 
   <!-- Форма для отправки отклика на объявление -->
   <h3>Отправить отклик:</h3>

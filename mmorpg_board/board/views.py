@@ -10,66 +10,44 @@ from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Category, Advertisement, MediaContent, Response, PrivatePage, Newsletter
+from .models import Category, Advertisement, Response, PrivatePage, Newsletter
 from .forms import NewsletterForm, AdvertisementForm, UserRegistrationForm, ResponseForm, EmailAuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 
 
-def login_user(request):
-    if request.method == 'POST':
-        form = EmailAuthenticationForm(request, request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('private_page')  # Перенаправление на приватную страницу после входа
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
-
-def logout_user(request):
-    logout(request)
-    return redirect('login')  # Перенаправление на страницу входа после выхода
+def send_confirmation_email(request, user):
+    current_site = get_current_site(request)
+    mail_subject = 'Подтверждение регистрации'
+    message = render_to_string('registration_confirmation_email.html', {
+        'user': user,
+        'domain': current_site.domain,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': default_token_generator.make_token(user),
+    })
+    to_email = user.email
+    email = EmailMessage(mail_subject, message, to=[to_email])
+    email.send()
 
 def register_user(request):
     if request.method == 'POST':
-        email = request.POST['email']
-        # Проверка, что пользователь с таким email уже не зарегистрирован
-        if not User.objects.filter(email=email).exists():
-            user = User.objects.create_user(email, email)
-            user.is_active = False
-            user.save()
-
-            # Отправка письма с кодом подтверждения
-            current_site = get_current_site(request)
-            mail_subject = 'Подтверждение регистрации'
-            message = render_to_string('registration_confirmation_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user),
-            })
-            to_email = email
-            email = EmailMessage(mail_subject, message, to=[to_email])
-            email.send()
-
-            # Автоматическая аутентификация пользователя после успешной регистрации
-            login(request, user)
-
-            # Редирект на страницу со всеми объявлениями
-            return redirect('all_advertisements')
-        else:
-            # Пользователь уже зарегистрирован
-            return render(request, 'registration.html', {'error_message': 'Пользователь с таким email уже зарегистрирован.'})
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            # Проверка, что пользователь с таким email уже не зарегистрирован
+            if not User.objects.filter(email=email).exists():
+                user = User.objects.create_user(email, email)
+                user.is_active = False
+                user.save()
+                send_confirmation_email(request, user)  # Отправляем письмо с подтверждением
+                return redirect('confirmation_sent')  # Редирект на страницу с сообщением о подтверждении
+            else:
+                # Пользователь уже зарегистрирован
+                return render(request, 'registration.html', {'error_message': 'Пользователь с таким email уже зарегистрирован.'})
     else:
-        return render(request, 'registration.html')
+        form = UserRegistrationForm()
+    return render(request, 'registration.html', {'form': form})
 
-
-# Функция для регистрации пользователя и отправки письма с кодом подтверждения
-@login_required
 def confirmation_sent(request):
     return render(request, 'confirmation_sent.html')
 
@@ -88,6 +66,24 @@ def confirm_email(request, uidb64, token):
         return redirect('all_advertisements')
     else:
         return HttpResponse('Ссылка для подтверждения недействительна или устарела.')
+
+def login_user(request):
+    if request.method == 'POST':
+        form = EmailAuthenticationForm(request, request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('private_page')  # Перенаправление на приватную страницу после входа
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+def logout_user(request):
+    logout(request)
+    return redirect('login')  # Перенаправление на страницу входа после выхода
 
 # Функция для просмотра приватной страницы пользователя с его объявлениями и откликами
 @login_required
@@ -115,11 +111,6 @@ def send_newsletter(request):
     else:
         form = NewsletterForm()
     return render(request, 'send_newsletter.html', {'form': form})
-
-def view_newsletter(request, newsletter_id):
-    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
-    return render(request, 'newsletter.html', {'newsletter': newsletter})
-
 
 @login_required
 def create_advertisement(request):
@@ -186,7 +177,6 @@ def edit_advertisement(request, advertisement_id):
     else:
         # Если пользователь не является автором объявления, перенаправить на детали объявления
         return redirect('advertisement_detail', advertisement_id=advertisement.pk)
-
 
 def all_advertisements(request):
     if request.user.is_active:

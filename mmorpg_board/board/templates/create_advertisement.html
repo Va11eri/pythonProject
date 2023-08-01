@@ -8,9 +8,24 @@
       {% endfor %}
     </ul>
   {% endif %}
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div>
+      <label for="{{ form.title.id_for_label }}">Титул:</label>
+      {{ form.title }}
+    </div>
+    <div>
+      <label for="{{ form.category.id_for_label }}">Категория:</label>
+      {{ form.category }}
+    </div>
+    <div>
+      <label for="{{ form.content.id_for_label }}">Описание:</label>
+      {{ form.content }}
+    </div>
+    <div>
+      <label for="{{ form.file.id_for_label }}">Медиа-контент:</label>
+      {{ form.file }}
+    </div>
     <button type="submit">Создать объявление</button>
   </form>
 {% endblock %}

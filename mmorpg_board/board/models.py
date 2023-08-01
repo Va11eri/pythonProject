@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from ckeditor.fields import RichTextField
 
 
 class Category(models.Model):
@@ -11,21 +12,22 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-# Модель для объявлений
+
 class Advertisement(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     title = models.CharField(max_length=200)
-    content = models.TextField()
+    content = RichTextField()  # Заменим TextField на RichTextField
+    file = models.FileField(upload_to='media/', blank=True, null=True)  # Добавим поле для медиа-контента
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
 
 # Модель для медиа-контента объявления (картинки, видео и другой контент)
-class MediaContent(models.Model):
-    advertisement = models.ForeignKey(Advertisement, on_delete=models.CASCADE)
-    file = models.FileField(upload_to='media/')
+#class MediaContent(models.Model):
+ #   advertisement = models.ForeignKey(Advertisement, on_delete=models.CASCADE)
+  #  file = models.FileField(upload_to='media/')
 
 # Модель для откликов на объявления
 class Response(models.Model):

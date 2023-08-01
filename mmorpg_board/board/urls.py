@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('login/', views.login_user, name='login'),
@@ -24,4 +26,6 @@ urlpatterns = [
     path('delete_response/<int:response_id>/', views.delete_response, name='delete_response'),
     path('accept_response/<int:response_id>/', views.accept_response, name='accept_response'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

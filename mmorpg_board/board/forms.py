@@ -17,10 +17,10 @@ class NewsletterForm(forms.ModelForm):
 class AdvertisementForm(forms.ModelForm):
     class Meta:
         model = Advertisement
-        fields = ['title', 'content', 'category']
+        fields = ['title', 'content', 'category', 'file']
 
 
-class UserRegistrationForm:
+class UserRegistrationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
