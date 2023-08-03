@@ -36,7 +36,7 @@ def register_user(request):
             email = form.cleaned_data['email']
             # Проверка, что пользователь с таким email уже не зарегистрирован
             if not User.objects.filter(email=email).exists():
-                user = User.objects.create_user(email, email)
+                user = form.save()  # Сохранение пользователя в базу данных
                 user.is_active = False
                 user.save()
                 send_confirmation_email(request, user)  # Отправляем письмо с подтверждением

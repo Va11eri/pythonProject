@@ -4,6 +4,10 @@ from django.core.mail import EmailMessage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from ckeditor.fields import RichTextField
+from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.exceptions import ValidationError
 
 
 class Category(models.Model):
@@ -90,3 +94,21 @@ def send_response_notification(sender, instance, **kwargs):
 
 
 post_save.connect(send_response_notification, sender=Response)
+
+
+User = get_user_model()
+
+class EmailAuthenticationForm(AuthenticationForm):
+    username = forms.EmailField(label='Email')
+
+    def clean(self):
+        email = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+        if email is not None and password:
+            user = User.objects.filter(email=email).first()
+            if user is not None:
+                if not user.check_password(password):
+                    raise ValidationError('Неверный пароль')
+            else:
+                raise ValidationError('Пользователь с таким email не найден')
+        return self.cleaned_data
