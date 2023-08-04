@@ -14,6 +14,7 @@ from .models import Category, Advertisement, Response, PrivatePage, Newsletter
 from .forms import NewsletterForm, AdvertisementForm, UserRegistrationForm, ResponseForm, EmailAuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
 
 
 def send_confirmation_email(request, user):
@@ -69,16 +70,21 @@ def confirm_email(request, uidb64, token):
 
 def login_user(request):
     if request.method == 'POST':
-        form = EmailAuthenticationForm(request, request.POST)
+        form = EmailAuthenticationForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
+            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
+            user = authenticate(username=email, password=password)
             if user is not None:
-                login(request, user)
-                return redirect('private_page')  # Перенаправление на приватную страницу после входа
+                if user.is_active:
+                    login(request, user)
+                    return redirect('private_page')
+                else:
+                    messages.error(request, 'Пользователь не активирован.')
+            else:
+                messages.error(request, 'Неверный email или пароль.')
     else:
-        form = AuthenticationForm()
+        form = EmailAuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
 def logout_user(request):

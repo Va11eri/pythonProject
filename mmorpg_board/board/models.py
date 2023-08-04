@@ -5,7 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from ckeditor.fields import RichTextField
 from django import forms
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
 
@@ -98,17 +98,22 @@ post_save.connect(send_response_notification, sender=Response)
 
 User = get_user_model()
 
-class EmailAuthenticationForm(AuthenticationForm):
-    username = forms.EmailField(label='Email')
+class EmailAuthenticationForm(forms.Form):
+    email = forms.EmailField(label='Email')
+    password = forms.CharField(label='Пароль', widget=forms.PasswordInput)
 
     def clean(self):
-        email = self.cleaned_data.get('username')
+        email = self.cleaned_data.get('email')
         password = self.cleaned_data.get('password')
-        if email is not None and password:
-            user = User.objects.filter(email=email).first()
-            if user is not None:
-                if not user.check_password(password):
-                    raise ValidationError('Неверный пароль')
+
+        if email and password:
+            user = authenticate(username=email, password=password)
+            if user is None:
+                raise ValidationError('Неверный email или пароль')
             else:
-                raise ValidationError('Пользователь с таким email не найден')
+                # При успешной аутентификации обновляем cleaned_data
+                self.cleaned_data['user'] = user
+
         return self.cleaned_data
+
+

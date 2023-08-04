@@ -2,11 +2,11 @@ from django import forms
 from .models import Newsletter, Category, Advertisement
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.forms import AuthenticationForm
 
 
-class EmailAuthenticationForm(AuthenticationForm):
-    username = forms.EmailField(label='Email')
+class EmailAuthenticationForm(forms.Form):
+    email = forms.EmailField(label='Email')
+    password = forms.CharField(label='Password', widget=forms.PasswordInput)
 
 class NewsletterForm(forms.ModelForm):
     class Meta:
