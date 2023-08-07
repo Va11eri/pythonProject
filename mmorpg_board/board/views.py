@@ -122,7 +122,7 @@ def send_newsletter(request):
 @login_required
 def create_advertisement(request):
     if request.method == 'POST':
-        form = AdvertisementForm(request.POST)
+        form = AdvertisementForm(request.POST, request.FILES)
         if form.is_valid():
             advertisement = form.save(commit=False)
             advertisement.user = request.user
