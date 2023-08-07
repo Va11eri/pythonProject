@@ -116,4 +116,3 @@ class EmailAuthenticationForm(forms.Form):
 
         return self.cleaned_data
 
-

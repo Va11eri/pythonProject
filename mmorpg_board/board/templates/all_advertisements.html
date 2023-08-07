@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
     <title>Моя доска объявлений</title>
@@ -24,6 +23,9 @@
             <h2>{{ advertisement.title }}</h2>
             <p>{{ advertisement.content }}</p>
             <p>Автор: {{ advertisement.user }}</p>
+            {% if advertisement.file %}
+                <img src="{{ advertisement.file.url }}" alt="{{ advertisement.title }}" style="max-width: 300px;">
+            {% endif %}
         </li>
         {% endfor %}
     </ul>
